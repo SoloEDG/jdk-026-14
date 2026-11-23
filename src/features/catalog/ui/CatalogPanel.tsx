@@ -7,9 +7,11 @@ import { PuzzleCard } from "./PuzzleCard";
 export function CatalogPanel({
   document,
   onOpen,
+  onOpenZone,
 }: {
   document: GameDocument;
   onOpen: (id: string) => void;
+  onOpenZone: (id: string, zoneId: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState("全部");
@@ -53,6 +55,7 @@ export function CatalogPanel({
             session={document.sessions[p.id]}
             selected={document.activeId === p.id}
             onOpen={() => onOpen(p.id)}
+            onOpenZone={(zoneId) => onOpenZone(p.id, zoneId)}
           />
         ))}
         {!visible.length && (

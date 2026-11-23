@@ -1,4 +1,13 @@
-import { Square, X, Eraser, Undo2, RotateCcw } from "lucide-react";
+import {
+  Square,
+  X,
+  Eraser,
+  Undo2,
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
+  ScanSearch,
+} from "lucide-react";
 import type { Tool } from "../../../shared/types";
 export function BoardToolbar({
   tool,
@@ -7,6 +16,11 @@ export function BoardToolbar({
   onReset,
   canUndo,
   disabled,
+  onZoomIn,
+  onZoomOut,
+  onFit,
+  canZoomIn,
+  canZoomOut,
 }: {
   tool: Tool;
   onTool: (t: Tool) => void;
@@ -14,6 +28,11 @@ export function BoardToolbar({
   onReset: () => void;
   canUndo: boolean;
   disabled: boolean;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onFit: () => void;
+  canZoomIn: boolean;
+  canZoomOut: boolean;
 }) {
   return (
     <div className="board-toolbar">
@@ -38,6 +57,20 @@ export function BoardToolbar({
         ))}
       </div>
       <div className="tool-group">
+        <button
+          aria-label="缩小视图"
+          title="缩小视图"
+          onClick={onZoomOut}
+          disabled={!canZoomOut}
+        >
+          <ZoomOut size={17} />
+        </button>
+        <button aria-label="放大视图" title="放大视图" onClick={onZoomIn} disabled={!canZoomIn}>
+          <ZoomIn size={17} />
+        </button>
+        <button aria-label="适应全盘" title="适应全盘" onClick={onFit}>
+          <ScanSearch size={17} />
+        </button>
         <button
           aria-label="撤销上一步"
           title="撤销上一步"

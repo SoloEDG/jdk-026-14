@@ -1,6 +1,25 @@
 import type { GameDocument, Mark, Puzzle } from "../../../shared/types";
 import { newDocument, newSession, isSolved } from "../../../shared/document";
+import { clampViewport, sanitizeZones } from "../../zones/model/zones";
 const KEY = "gejian.document.v1";
+
+const MARKS: Mark[] = ["filled", "unknown", "cross"];
+
+function normalizeView(value: unknown) {
+  if (typeof value !== "object" || value === null) return null;
+  const view = value as Partial<Record<"zoom" | "row" | "col", unknown>>;
+  return {
+    zoom: Number(view.zoom) || 1,
+    row: Number(view.row) || 0,
+    col: Number(view.col) || 0,
+  };
+}
+
+/**
+ * Region identity and viewport live on the session, so reopening the page
+ * restores which region was in focus and where it was scrolled. They are
+ * sanitized against the puzzle size rather than trusted as-is.
+ */
 export function loadDocument(puzzles: Puzzle[]): {
   document: GameDocument;
   warning: string;
@@ -18,16 +37,27 @@ export function loadDocument(puzzles: Puzzle[]): {
         saved &&
         Array.isArray(saved.marks) &&
         saved.marks.length === puzzle.size ** 2 &&
-        saved.marks.every((m: Mark) =>
-          ["filled", "unknown", "cross"].includes(m),
-        )
+        saved.marks.every((m: Mark) => MARKS.includes(m))
       ) {
+        const zones = sanitizeZones(saved.zones, puzzle.size);
+        const activeZoneId =
+          typeof saved.activeZoneId === "string" &&
+          zones.some((zone) => zone.id === saved.activeZoneId)
+            ? saved.activeZoneId
+            : null;
+        const fresh = newSession(puzzle);
         const session = {
-          ...newSession(puzzle),
+          ...fresh,
           marks: saved.marks,
           hints: Math.min(3, Math.max(0, Number(saved.hints) || 0)),
           checks: Math.max(0, Number(saved.checks) || 0),
           seconds: Math.max(0, Number(saved.seconds) || 0),
+          zones,
+          activeZoneId,
+          view: clampViewport(puzzle.size, normalizeView(saved.view) ?? fresh.view),
+          // Check results are never restored: they describe a specific
+          // region and viewport from a previous visit.
+          check: null,
           updatedAt: Date.now(),
         };
         sessions[puzzle.id] = { ...session, solved: isSolved(puzzle, session) };
@@ -57,6 +87,7 @@ export function loadDocument(puzzles: Puzzle[]): {
     };
   }
 }
+
 export function saveDocument(document: GameDocument): boolean {
   try {
     localStorage.setItem(KEY, JSON.stringify(document));

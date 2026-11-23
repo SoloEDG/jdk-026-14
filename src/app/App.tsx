@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Grid2X2,
-  Images,
-  Leaf,
-  ArrowUpRight,
-  CheckCircle2,
-  X,
-} from "lucide-react";
+import { Grid2X2, Images, Leaf, ArrowUpRight, CheckCircle2, X } from "lucide-react";
 import { CatalogPanel, puzzles } from "../features/catalog";
 import { BoardPanel } from "../features/board";
 import { AssistPanel } from "../features/assist";
@@ -18,8 +11,11 @@ export function App() {
   const [page, setPage] = useState<"play" | "gallery">("play");
   const [resetting, setResetting] = useState(false);
   const open = (id: string) => {
-    game.dispatch({ type: "open", id });
-    game.clearMessage();
+    game.open(id);
+    setPage("play");
+  };
+  const openZone = (id: string, zoneId: string) => {
+    game.open(id, zoneId);
     setPage("play");
   };
   return (
@@ -78,7 +74,11 @@ export function App() {
           {page === "play" ? (
             <>
               <div className="workspace">
-                <CatalogPanel document={game.document} onOpen={open} />
+                <CatalogPanel
+                  document={game.document}
+                  onOpen={open}
+                  onOpenZone={openZone}
+                />
                 <BoardPanel
                   puzzle={game.puzzle}
                   session={game.session}
@@ -87,10 +87,18 @@ export function App() {
                   }
                   onUndo={() => game.dispatch({ type: "undo" })}
                   onReset={() => setResetting(true)}
+                  onView={game.view}
+                  onFocusZone={game.focusZone}
+                  onCreateZone={game.createZone}
+                  onRenameZone={game.renameZone}
+                  onReshapeZone={game.reshapeZone}
+                  onRemoveZone={game.removeZone}
+                  onCheck={game.check}
                 />
                 <AssistPanel
                   puzzle={game.puzzle}
                   session={game.session}
+                  zone={game.zone}
                   message={game.message}
                   onHint={game.hint}
                   onCheck={game.check}
@@ -163,7 +171,7 @@ export function App() {
             </button>
             <h2 id="reset-title">重新探索这幅图？</h2>
             <p>
-              本题标记、计时和提示额度会重置。已完成的解题记录和收藏仍保留。
+              本题标记、计时和提示额度会重置，观察区域会保留。已完成的解题记录和收藏仍保留。
             </p>
             <div>
               <button onClick={() => setResetting(false)}>继续解题</button>

@@ -1,4 +1,5 @@
-import type { GameDocument, Puzzle, Session } from "./types";
+import type { GameDocument, Puzzle, Session, Viewport } from "./types";
+export const DEFAULT_VIEW: Viewport = { zoom: 1, row: 0, col: 0 };
 export function newSession(puzzle: Puzzle): Session {
   return {
     puzzleId: puzzle.id,
@@ -9,6 +10,10 @@ export function newSession(puzzle: Puzzle): Session {
     seconds: 0,
     solved: false,
     updatedAt: Date.now(),
+    zones: [],
+    activeZoneId: null,
+    view: { ...DEFAULT_VIEW },
+    check: null,
   };
 }
 export function newDocument(puzzle: Puzzle): GameDocument {
